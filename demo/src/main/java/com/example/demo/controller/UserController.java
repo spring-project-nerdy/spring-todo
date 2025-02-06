@@ -3,15 +3,14 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ResponseDTO;
 import com.example.demo.dto.UserDTO;
-import com.example.demo.dto.UserDTO.UserDTOBuilder;
 import com.example.demo.model.UserEntity;
 import com.example.demo.security.TokenProvider;
 import com.example.demo.service.UserService;
-import jdk.nashorn.internal.parser.Token;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +27,8 @@ public class UserController {
   @Autowired
   private TokenProvider tokenProvider;
   
+  private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+  
   @PostMapping("/signup")
   public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
     try {
@@ -38,7 +39,7 @@ public class UserController {
       // 요청을 이용해 저장할 유저 만들기
       UserEntity user = UserEntity.builder()
           .username(userDTO.getUsername())
-          .password(userDTO.getPassword())
+          .password(passwordEncoder.encode(userDTO.getPassword()))
           .build();
       
       // 서비스를 이용해 리포지터리에 유저 저장
@@ -62,7 +63,8 @@ public class UserController {
   public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
     UserEntity user = userService.getByCredentials(
         userDTO.getUsername(),
-        userDTO.getPassword());
+        userDTO.getPassword(),
+        passwordEncoder);
   
     if (user != null) {
       // 토큰 생성
