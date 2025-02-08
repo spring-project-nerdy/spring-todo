@@ -7,7 +7,7 @@ import { Typography, Box } from "@mui/material";
 
 function Copyright() {
   return (
-    <Typography variant="body2" color="textSecondary" align="ceter">
+    <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
       fsoftwareengineer, {new Date().getFullYear()}
       {"."}

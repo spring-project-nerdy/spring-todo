@@ -10,19 +10,7 @@ function App() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const requestOptions = {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    };
-
-    fetch("http://localhost:8080/todo", requestOptions)
-      .then((response) => response.json())
-      .then(
-        (response) => {
-          setItems(response.data);
-        },
-        (error) => {}
-      );
+    call("/todo", "GET", null).then((response) => setItems(response.data));
   }, []);
 
   const addItem = (item) => {
