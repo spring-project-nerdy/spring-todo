@@ -1,6 +1,8 @@
 package com.example.demo.config;
 
 import com.example.demo.security.JwtAuthenticationFilter;
+import com.example.demo.security.OAuthSuccessHandler;
+import com.example.demo.security.OAuthUserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    
+    @Autowired
+    private OAuthUserServiceImpl oAuthUserService;
+    
+    @Autowired
+    private OAuthSuccessHandler oAuthSuccessHandler;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -30,9 +38,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests() // /와 /auth/** 경로는 인증 안 해도 됨.
-            .antMatchers("/", "/auth/**").permitAll()
+            .antMatchers("/", "/auth/**", "/oauth2/**").permitAll() // oauth2 앤드포인트 추가
             .anyRequest() // /와 /auth/**이외의 모든 경로는 인증해야됨.
-            .authenticated();
+            .authenticated()
+            .and()
+            .oauth2Login() // oauth2Login 설정
+            .redirectionEndpoint()
+            .baseUri("/oauth2/callback/*") // callback uri 설정;
+            .and()
+            .userInfoEndpoint()
+            .userService(oAuthUserService) // OAuthUserServiceImpl를 유저 서비스로 등록
+            .and()
+            .successHandler(oAuthSuccessHandler);
 
         // filter 등록.
         // 매 요청마다.
