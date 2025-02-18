@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import com.example.demo.model.UserEntity;
+import org.springframework.security.core.Authentication;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,7 +17,25 @@ import java.util.Date;
 public class TokenProvider {
     private static final String SECRET_KEY = "cmVhY3RzcHJpbmdzaWRlcHJvamVjdC5kZW1vX2FwcA";
 
+
     public String create(UserEntity userEntity) {
+        // 기한 지금으로부터 1일로 설정
+        Date expiryDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+
+        // JWT Token 생성
+        return Jwts.builder()
+            // header에 들어갈 내용 및 서명을 하기 위한 SECRET_KEY
+            .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+            // payload에 들어갈 내용
+            .setSubject(userEntity.getId()) // sub
+            .setIssuer("demo app") // iss
+            .setIssuedAt(new Date()) // iat
+            .setExpiration(expiryDate) // exp
+            .compact();
+    }
+
+    public String create(final Authentication authentication) {
         // 기한 지금으로부터 1일로 설정
         Date expiryDate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
 
@@ -26,7 +45,7 @@ public class TokenProvider {
                 // header에 들어갈 내용 및 서명을 하기 위한 SECRET_KEY
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 // payload에 들어갈 내용
-                .setSubject(userEntity.getId()) // sub
+                .setSubject(authentication.getName()) // sub //userEntity.getId()
                 .setIssuer("demo app") // iss
                 .setIssuedAt(new Date()) // iat
                 .setExpiration(expiryDate) // exp

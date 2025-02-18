@@ -3,6 +3,7 @@ package com.example.demo.config;
 import com.example.demo.security.JwtAuthenticationFilter;
 import com.example.demo.security.OAuthSuccessHandler;
 import com.example.demo.security.OAuthUserServiceImpl;
+import com.example.demo.security.RedirectUrlCookieFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.web.filter.CorsFilter;
 
 @EnableWebSecurity
@@ -24,6 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     
     @Autowired
     private OAuthSuccessHandler oAuthSuccessHandler;
+
+    @Autowired
+    private RedirectUrlCookieFilter redirectUrlCookieFilter;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -46,15 +52,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .redirectionEndpoint()
             .baseUri("/oauth2/callback/*") // callback uri 설정;
             .and()
+            .authorizationEndpoint()
+            .baseUri("/auth/authorize") // OAuth 2.0 흐름 시작을 위한 엔드포인트 추가
+            .and()
             .userInfoEndpoint()
             .userService(oAuthUserService) // OAuthUserServiceImpl를 유저 서비스로 등록
             .and()
-            .successHandler(oAuthSuccessHandler);
+            .successHandler(oAuthSuccessHandler)
+            .and()
+            .exceptionHandling()
+            .authenticationEntryPoint(new Http403ForbiddenEntryPoint()); // Http403Forbidden EntryPoint 추가
 
         // filter 등록.
         // 매 요청마다.
         // CorsFilter 실행한 후에
         // jwtAuthenticationFilter 실행한다.
         http.addFilterAfter(jwtAuthenticationFilter, CorsFilter.class);
+        http.addFilterBefore(redirectUrlCookieFilter, OAuth2AuthorizationRequestRedirectFilter.class); // 리다이렉트가되기 전에 필터를 실행해야 한다.
     }
 }

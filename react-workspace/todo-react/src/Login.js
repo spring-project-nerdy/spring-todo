@@ -2,7 +2,7 @@ import React from "react";
 import { Container, Typography, Button } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import TextField from "@mui/material/TextField";
-import { signin } from "./service/ApiService";
+import { signin, socialLogin } from "./service/ApiService";
 import { Link } from "react-router-dom";
 
 function Login() {
@@ -15,6 +15,10 @@ function Login() {
     signin({ username: username, password: password });
   };
 
+  const handleSocialLogin = (provider) => {
+    socialLogin(provider);
+  }
+
   return (
     <Container component="main" maxWidth="xs" style={{ marginTop: "8%" }}>
       <Grid container spacing={2}>
@@ -22,6 +26,11 @@ function Login() {
           <Typography component="h1" variant="h5">
             로그인
           </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Button onClick={() => handleSocialLogin("github")} fullWidth variant="contained" style={{backgroundColor: '#000'}}>
+              깃허브로 로그인하기
+          </Button>
         </Grid>
       </Grid>
       <form noValidate onSubmit={handleSubmit}>
